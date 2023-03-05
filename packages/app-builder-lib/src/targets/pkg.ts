@@ -9,6 +9,7 @@ import { filterCFBundleIdentifier } from "../appInfo"
 import { findIdentity, Identity } from "../codeSign/macCodeSign"
 import { Target } from "../core"
 import MacPackager from "../macPackager"
+import { createBlockmap } from "./differentialUpdateInfoBuilder"
 
 const certType = "Developer ID Installer"
 
@@ -72,7 +73,17 @@ export class PkgTarget extends Target {
     })
     await Promise.all([unlink(innerPackageFile), unlink(distInfoFile)])
 
-    await packager.dispatchArtifactCreated(artifactPath, this, arch, packager.computeSafeArtifactName(artifactName, "pkg", arch))
+    const updateInfo = await createBlockmap(artifactPath, this, packager, artifactName)
+
+    await packager.info.callArtifactBuildCompleted({
+      file: artifactPath,
+      safeArtifactName: packager.computeSafeArtifactName(artifactName, "pkg", arch),
+      target: this,
+      arch,
+      packager,
+      updateInfo,
+      isWriteUpdateInfo: true,
+    })
   }
 
   private async customizeDistributionConfiguration(distInfoFile: string, appPath: string) {
