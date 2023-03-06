@@ -102,7 +102,7 @@ export class PublishManager implements PublishContext {
     packager.addAfterPackHandler(async event => {
       const packager = event.packager
       if (event.electronPlatformName === "darwin") {
-        if (!event.targets.some(it => it.name === "dmg" || it.name === "zip")) {
+        if (!event.targets.some(it => it.name === "dmg" || it.name === "zip" || it.name === "pkg")) {
           return
         }
       } else if (packager.platform === Platform.WINDOWS) {
