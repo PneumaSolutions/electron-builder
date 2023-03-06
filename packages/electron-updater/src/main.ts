@@ -15,6 +15,7 @@ export { DebUpdater } from "./DebUpdater"
 export { RpmUpdater } from "./RpmUpdater"
 export { MacUpdater } from "./MacUpdater"
 export { NsisUpdater } from "./NsisUpdater"
+export { PkgUpdater } from "./PkgUpdater"
 
 // autoUpdater to mimic electron bundled autoUpdater
 let _autoUpdater: any
