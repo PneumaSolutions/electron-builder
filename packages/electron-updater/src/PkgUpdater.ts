@@ -1,5 +1,4 @@
 import { AllPublishOptions, BlockMap } from "builder-util-runtime"
-import { app } from "electron"
 import * as path from "path"
 import { AppAdapter } from "./AppAdapter"
 import { DownloadUpdateOptions } from "./AppUpdater"
@@ -34,7 +33,7 @@ export class PkgUpdater extends BaseUpdater {
   }
 
   protected doInstall(options: InstallOptions): boolean {
-    const cmdPath = path.resolve(path.dirname(app.getPath("exe")), "install-update")
+    const cmdPath = path.resolve(process.resourcesPath!, "../MacOS/install-update");
     const args = [options.installerPath]
     this.spawnLog(cmdPath, args).catch((e: Error) => {
       // https://github.com/electron-userland/electron-builder/issues/1129
