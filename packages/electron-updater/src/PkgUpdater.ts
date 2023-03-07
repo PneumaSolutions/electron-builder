@@ -33,7 +33,7 @@ export class PkgUpdater extends BaseUpdater {
   }
 
   protected doInstall(options: InstallOptions): boolean {
-    const cmdPath = path.resolve(process.resourcesPath!, "../MacOS/install-update");
+    const cmdPath = path.resolve(process.resourcesPath!, "../MacOS/install-update")
     const args = [options.installerPath]
     this.spawnLog(cmdPath, args).catch((e: Error) => {
       // https://github.com/electron-userland/electron-builder/issues/1129
