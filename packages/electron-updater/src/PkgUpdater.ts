@@ -35,6 +35,9 @@ export class PkgUpdater extends BaseUpdater {
   protected doInstall(options: InstallOptions): boolean {
     const cmdPath = path.resolve(process.resourcesPath!, "../MacOS/install-update")
     const args = [options.installerPath]
+    if (options.isSilent) {
+      args.push("--background");
+    }
     this.spawnLog(cmdPath, args).catch((e: Error) => {
       // https://github.com/electron-userland/electron-builder/issues/1129
       // Node 8 sends errors: https://nodejs.org/dist/latest-v8.x/docs/api/errors.html#errors_common_system_errors
