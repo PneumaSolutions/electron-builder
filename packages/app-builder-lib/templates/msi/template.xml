@@ -26,12 +26,19 @@
     <Property Id="ARPPRODUCTICON" Value="${iconId}"/>
     {{ } -}}
 
+    <Binary Id="RimHandleTag" SourceFile="..\..\native\target\release\rim_handle_tag.dll" />
+    <CustomAction Id="HandleTag" BinaryKey="RimHandleTag" DllEntry="HandleTag" Execute="immediate" Return="check" />
+
+    <InstallExecuteSequence>
+      <Custom Action="HandleTag" Before="InstallInitialize">NOT Installed</Custom>
+    </InstallExecuteSequence>
+
     {{ if (isRunAfterFinish) { }}
       <CustomAction Id="runAfterFinish" FileKey="mainExecutable" ExeCommand="" Execute="immediate" Impersonate="yes" Return="asyncNoWait"/>
       {{ if (!isAssisted) { }}
         <!-- https://stackoverflow.com/questions/1871531/launch-after-install-with-no-ui -->
         <InstallExecuteSequence>
-          <Custom Action="runAfterFinish" After="InstallFinalize">NOT Installed AND UILevel >= 4</Custom>
+          <Custom Action="runAfterFinish" After="InstallFinalize">NOT Installed AND UILevel &gt;= 4</Custom>
         </InstallExecuteSequence>
       {{ } -}}
     {{ } -}}
@@ -111,6 +118,16 @@
 
     <ComponentGroup Id="ProductComponents" Directory="APPLICATIONFOLDER">
       {{-files}}
+      <Component>
+        <RegistryKey Root="HKLM" Key="Software\Microsoft\Windows\CurrentVersion\Run">
+          <RegistryValue Type="string" Name="com.pneumasolutions.rim" Value="&quot;[#mainExecutable]&quot; --startup" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
+      <Component>
+        <RegistryKey Root="HKLM" Key="Software\Pneuma Solutions\RIM">
+          <RegistryValue Type="string" Name="MsiProductCode" Value="[ProductCode]" KeyPath="yes" />
+        </RegistryKey>
+      </Component>
     </ComponentGroup>
   </Product>
 </Wix>

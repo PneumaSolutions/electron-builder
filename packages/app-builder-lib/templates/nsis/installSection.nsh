@@ -12,29 +12,15 @@ StrCpy $appExe "$INSTDIR\${APP_EXECUTABLE_FILENAME}"
 !insertmacro setLinkVars
 
 !ifdef ONE_CLICK
-  !ifdef HEADER_ICO
-    File /oname=$PLUGINSDIR\installerHeaderico.ico "${HEADER_ICO}"
-  !endif
-  ${IfNot} ${Silent}
-    !ifdef HEADER_ICO
-      SpiderBanner::Show /MODERN /ICON "$PLUGINSDIR\installerHeaderico.ico"
-    !else
-      SpiderBanner::Show /MODERN
-    !endif
-
-    FindWindow $0 "#32770" "" $hwndparent
-    FindWindow $0 "#32770" "" $hwndparent $0
-    GetDlgItem $0 $0 1000
-    SendMessage $0 ${WM_SETTEXT} 0 "STR:$(installing)"
-
-    StrCpy $1 $hwndparent
-		System::Call 'user32::ShutdownBlockReasonCreate(${SYSTYPE_PTR}r1, w "$(installing)")'
-  ${endif}
   !insertmacro CHECK_APP_RUNNING
 !else
   ${ifNot} ${UAC_IsInnerInstance}
     !insertmacro CHECK_APP_RUNNING
   ${endif}
+!endif
+
+!ifmacrodef customPreInstall
+  !insertmacro customPreInstall
 !endif
 
 Var /GLOBAL keepShortcuts

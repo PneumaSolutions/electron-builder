@@ -3618,6 +3618,12 @@
             "string"
           ]
         },
+        "componentExtra": {
+          "type": [
+            "object",
+            "null"
+          ]
+        },
         "createDesktopShortcut": {
           "default": true,
           "description": "Whether to create desktop shortcut. Set to `always` if to recreate also on reinstall (even if removed by user).",

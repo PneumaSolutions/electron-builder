@@ -258,6 +258,10 @@ export default class MsiTarget extends Target {
         result += `/>`
       }
 
+      if (this.options.componentExtra && this.options.componentExtra[packagePath]) {
+        result += this.options.componentExtra[packagePath]
+      }
+
       const fileAssociations = this.packager.fileAssociations
       if (isMainExecutable && fileAssociations.length !== 0) {
         for (const item of fileAssociations) {

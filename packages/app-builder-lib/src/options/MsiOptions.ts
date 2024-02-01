@@ -23,4 +23,9 @@ export interface MsiOptions extends CommonWindowsInstallerConfiguration, TargetS
    * Any additional arguments to be passed to the WiX installer compiler, such as `["-ext", "WixUtilExtension"]`
    */
   readonly additionalWixArgs?: Array<string> | null
+
+  /**
+   * XML to be added to the WIX components for specific files.
+   */
+  readonly componentExtra?: Record<string, string> | null
 }

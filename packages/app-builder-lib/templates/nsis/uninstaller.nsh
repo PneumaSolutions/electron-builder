@@ -141,6 +141,10 @@ Section "un.install"
 
   !insertmacro setLinkVars
 
+  !ifmacrodef customUnInstallEarly
+    !insertmacro customUnInstallEarly
+  !endif
+
   # delete the installed files
   !ifmacrodef customRemoveFiles
     !insertmacro customRemoveFiles
