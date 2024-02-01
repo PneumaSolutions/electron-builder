@@ -1,6 +1,5 @@
 import { Arch, debug, exec, use } from "builder-util"
 import { statOrNull } from "builder-util/out/fs"
-import { NotarizeOptions } from "../options/macOptions"
 import { PkgOptions } from "../options/pkgOptions"
 import { executeAppBuilderAndWriteJson, executeAppBuilderAsJson } from "../util/appBuilder"
 import { getNotLocalizedLicenseFile } from "../util/license"
@@ -74,7 +73,7 @@ export class PkgTarget extends Target {
     })
     await Promise.all([unlink(innerPackageFile), unlink(distInfoFile)])
 
-    await this.notarizeIfProvided(artifactPath)
+    await this.packager.notarizeIfProvided(artifactPath, this.packager.platformSpecificBuildOptions)
 
     const updateInfo = await createBlockmap(artifactPath, this, packager, artifactName)
 
@@ -199,32 +198,6 @@ export class PkgTarget extends Target {
     args.push(packageOutputFile)
 
     await exec("pkgbuild", args)
-  }
-
-  private async notarizeIfProvided(pkgPath: string) {
-    const notarizeOptions = this.packager.platformSpecificBuildOptions.notarize
-    if (notarizeOptions === false) {
-      return
-    }
-    const appleId = process.env.APPLE_ID
-    const appleIdPassword = process.env.APPLE_APP_SPECIFIC_PASSWORD
-    if (!appleId && !appleIdPassword) {
-      // if no credentials provided, skip silently
-      return
-    }
-    await exec("xcrun", [
-      "notarytool",
-      "submit",
-      pkgPath,
-      "--apple-id",
-      appleId!,
-      "--password",
-      appleIdPassword!,
-      "--team-id",
-      (notarizeOptions as NotarizeOptions).teamId!,
-      "--wait",
-    ])
-    await exec("stapler", ["staple", pkgPath])
   }
 }
 
