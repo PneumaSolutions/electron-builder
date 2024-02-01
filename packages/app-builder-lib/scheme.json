@@ -3619,10 +3619,15 @@
           ]
         },
         "componentExtra": {
-          "type": [
-            "object",
-            "null"
-          ]
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Record<string,string>"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "XML to be added to the WIX components for specific files."
         },
         "createDesktopShortcut": {
           "default": true,
@@ -5466,6 +5471,10 @@
         "name",
         "schemes"
       ],
+      "type": "object"
+    },
+    "Record<string,string>": {
+      "additionalProperties": false,
       "type": "object"
     },
     "ReleaseInfo": {
