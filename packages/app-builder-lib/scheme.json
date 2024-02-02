@@ -3594,6 +3594,12 @@
       },
       "type": "object"
     },
+    "MsiComponentExtra": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
     "MsiOptions": {
       "additionalProperties": false,
       "properties": {
@@ -3621,7 +3627,7 @@
         "componentExtra": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Record<string,string>"
+              "$ref": "#/definitions/MsiComponentExtra"
             },
             {
               "type": "null"
@@ -5471,10 +5477,6 @@
         "name",
         "schemes"
       ],
-      "type": "object"
-    },
-    "Record<string,string>": {
-      "additionalProperties": false,
       "type": "object"
     },
     "ReleaseInfo": {

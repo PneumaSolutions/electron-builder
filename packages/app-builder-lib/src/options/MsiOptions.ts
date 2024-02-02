@@ -1,6 +1,10 @@
 import { TargetSpecificOptions } from "../core"
 import { CommonWindowsInstallerConfiguration } from "./CommonWindowsInstallerConfiguration"
 
+interface MsiComponentExtra {
+  [path: string]: string
+}
+
 export interface MsiOptions extends CommonWindowsInstallerConfiguration, TargetSpecificOptions {
   /**
    * One-click installation.
@@ -27,5 +31,5 @@ export interface MsiOptions extends CommonWindowsInstallerConfiguration, TargetS
   /**
    * XML to be added to the WIX components for specific files.
    */
-  readonly componentExtra?: Record<string, string> | null
+  readonly componentExtra?: MsiComponentExtra | null
 }
