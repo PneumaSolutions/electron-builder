@@ -59,15 +59,57 @@ Function .onInit
   !else
     !insertmacro check64BitAndSetRegView
 
-    !ifdef ONE_CLICK
+    ${IfNot} ${UAC_IsInnerInstance}
       !insertmacro ALLOW_ONLY_ONE_INSTALLER_INSTANCE
-    !else
-      ${IfNot} ${UAC_IsInnerInstance}
-        !insertmacro ALLOW_ONLY_ONE_INSTALLER_INSTANCE
-      ${EndIf}
-    !endif
+    ${EndIf}
 
     !insertmacro initMultiUser
+
+    # If we're running a silent upgrade of a per-machine installation, elevate so extracting the new app will succeed.
+    # For a non-silent install, the elevation will be triggered when the install mode is selected in the UI,
+    # but that won't be executed when silent.
+    !ifndef INSTALL_MODE_PER_ALL_USERS
+      ${if} $hasPerMachineInstallation == "1" # set in onInit by initMultiUser
+      !ifndef ONE_CLICK
+        ${andIf} ${Silent}
+      !endif
+        ${ifNot} ${UAC_IsAdmin}
+          !insertmacro UAC_RunElevated
+          ${Switch} $0
+            ${Case} 0
+              ${Break}
+            ${Case} 1223 ;user aborted
+              ${Break}
+            ${Default}
+              MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "Unable to elevate, error $0"
+              ${Break}
+          ${EndSwitch}
+          Quit
+        ${else}
+          !insertmacro setInstallModePerAllUsers
+        ${endIf}
+      ${endIf}
+      !ifdef ONE_CLICK
+        !ifdef INSTALL_MODE_PER_ALL_USERS_DEFAULT
+          ${if} $hasPerMachineInstallation == "0"
+          ${andIf} $hasPerUserInstallation == "0"
+            ${ifNot} ${UAC_IsAdmin}
+              !insertmacro UAC_RunElevated
+              ${Switch} $0
+                ${Case} 0
+                  Quit
+                  ${Break}
+                ${Default}
+                  !insertmacro setInstallModePerUser
+                  ${Break}
+              ${EndSwitch}
+            ${else}
+              !insertmacro setInstallModePerAllUsers
+            ${endIf}
+          ${endIf}
+        !endif
+      !endif
+    !endif
 
     !ifmacrodef customInit
       !insertmacro customInit
@@ -86,32 +128,6 @@ FunctionEnd
 
 Section "install" INSTALL_SECTION_ID
   !ifndef BUILD_UNINSTALLER
-    # If we're running a silent upgrade of a per-machine installation, elevate so extracting the new app will succeed.
-    # For a non-silent install, the elevation will be triggered when the install mode is selected in the UI,
-    # but that won't be executed when silent.
-    !ifndef INSTALL_MODE_PER_ALL_USERS
-      !ifndef ONE_CLICK
-          ${if} $hasPerMachineInstallation == "1" # set in onInit by initMultiUser
-          ${andIf} ${Silent}
-            ${ifNot} ${UAC_IsAdmin}
-              ShowWindow $HWNDPARENT ${SW_HIDE}
-              !insertmacro UAC_RunElevated
-              ${Switch} $0
-                ${Case} 0
-                  ${Break}
-                ${Case} 1223 ;user aborted
-                  ${Break}
-                ${Default}
-                  MessageBox mb_IconStop|mb_TopMost|mb_SetForeground "Unable to elevate, error $0"
-                  ${Break}
-              ${EndSwitch}
-              Quit
-            ${else}
-              !insertmacro setInstallModePerAllUsers
-            ${endIf}
-          ${endIf}
-      !endif
-    !endif
     !include "installSection.nsh"
   !endif
 SectionEnd

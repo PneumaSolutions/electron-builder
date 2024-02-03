@@ -11,13 +11,7 @@ StrCpy $appExe "$INSTDIR\${APP_EXECUTABLE_FILENAME}"
 # must be called before uninstallOldVersion
 !insertmacro setLinkVars
 
-!ifdef ONE_CLICK
-  !insertmacro CHECK_APP_RUNNING
-!else
-  ${ifNot} ${UAC_IsInnerInstance}
-    !insertmacro CHECK_APP_RUNNING
-  ${endif}
-!endif
+!insertmacro CHECK_APP_RUNNING
 
 !ifmacrodef customPreInstall
   !insertmacro customPreInstall

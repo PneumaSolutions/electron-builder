@@ -12,10 +12,8 @@
 Var installMode
 
 !ifndef INSTALL_MODE_PER_ALL_USERS
-  !ifndef ONE_CLICK
-    Var hasPerUserInstallation
-    Var hasPerMachineInstallation
-  !endif
+  Var hasPerUserInstallation
+  Var hasPerMachineInstallation
   Var PerUserInstallationFolder
 
   !macro setInstallModePerUser
@@ -91,3 +89,59 @@ Var installMode
 
   !macroend
 !endif
+
+!macro initMultiUser
+  !ifdef INSTALL_MODE_PER_ALL_USERS
+    !insertmacro setInstallModePerAllUsers
+  !else
+    ${If} ${UAC_IsInnerInstance}
+    ${AndIfNot} ${UAC_IsAdmin}
+      # special return value for outer instance so it knows we did not have admin rights
+      SetErrorLevel 0x666666
+      Quit
+    ${endIf}
+
+    # checks registry for previous installation path (both for upgrading, reinstall, or uninstall)
+    StrCpy $hasPerMachineInstallation "0"
+    StrCpy $hasPerUserInstallation "0"
+
+    # set installation mode to setting from a previous installation
+    ReadRegStr $perMachineInstallationFolder HKLM "${INSTALL_REGISTRY_KEY}" InstallLocation
+    ${if} $perMachineInstallationFolder != ""
+      StrCpy $hasPerMachineInstallation "1"
+    ${endif}
+
+    ReadRegStr $perUserInstallationFolder HKCU "${INSTALL_REGISTRY_KEY}" InstallLocation
+    ${if} $perUserInstallationFolder != ""
+      StrCpy $hasPerUserInstallation "1"
+    ${endif}
+
+    ${GetParameters} $R0
+    ${GetOptions} $R0 "/allusers" $R1
+    ${IfNot} ${Errors}
+      StrCpy $hasPerMachineInstallation "1"
+      StrCpy $hasPerUserInstallation "0"
+    ${EndIf}
+
+    ${GetOptions} $R0 "/currentuser" $R1
+    ${IfNot} ${Errors}
+      StrCpy $hasPerMachineInstallation "0"
+      StrCpy $hasPerUserInstallation "1"
+    ${EndIf}
+
+    ${if} $hasPerUserInstallation == "1"
+    ${andif} $hasPerMachineInstallation == "0"
+      !insertmacro setInstallModePerUser
+    ${elseif} $hasPerUserInstallation == "0"
+      ${andif} $hasPerMachineInstallation == "1"
+      !insertmacro setInstallModePerAllUsers
+    ${else}
+      # if there is no installation, or there is both per-user and per-machine
+      !ifdef INSTALL_MODE_PER_ALL_USERS_DEFAULT
+        !insertmacro setInstallModePerAllUsers
+      !else
+        !insertmacro setInstallModePerUser
+      !endif
+    ${endif}
+  !endif
+!macroend

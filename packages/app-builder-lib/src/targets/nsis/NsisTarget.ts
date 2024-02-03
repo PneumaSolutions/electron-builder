@@ -161,6 +161,7 @@ export class NsisTarget extends Target {
         .join(", "),
     }
     const isPerMachine = options.perMachine === true
+    const selectPerMachineByDefault = options.selectPerMachineByDefault === true
 
     if (!this.isPortable) {
       logFields.oneClick = oneClick
@@ -185,7 +186,7 @@ export class NsisTarget extends Target {
       UNINSTALL_APP_KEY: uninstallAppKey,
       PRODUCT_NAME: appInfo.productName,
       PRODUCT_FILENAME: appInfo.productFilename,
-      APP_FILENAME: getWindowsInstallationDirName(appInfo, !oneClick || isPerMachine),
+      APP_FILENAME: getWindowsInstallationDirName(appInfo, !oneClick || isPerMachine || selectPerMachineByDefault),
       APP_DESCRIPTION: appInfo.description,
       VERSION: appInfo.version,
 
@@ -478,7 +479,7 @@ export class NsisTarget extends Target {
       defines.INSTALL_MODE_PER_ALL_USERS_DEFAULT = null
     }
 
-    if (!oneClick || options.perMachine === true) {
+    if (!oneClick || options.perMachine === true || options.selectPerMachineByDefault === true) {
       defines.INSTALL_MODE_PER_ALL_USERS_REQUIRED = null
     }
 
