@@ -92,10 +92,6 @@ Function .onInit
       !ifdef ONE_CLICK
         !ifdef INSTALL_MODE_PER_ALL_USERS_DEFAULT
           ${if} $hasPerMachineInstallation == "0"
-          ${andIf} $hasPerUserInstallation == "1"
-            !insertmacro setInstallModePerUser
-          ${endIf}
-          ${if} $hasPerMachineInstallation == "0"
           ${andIf} $hasPerUserInstallation == "0"
             ${ifNot} ${UAC_IsAdmin}
               !insertmacro UAC_RunElevated
