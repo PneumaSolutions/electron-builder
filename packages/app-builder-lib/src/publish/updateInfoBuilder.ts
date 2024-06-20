@@ -62,8 +62,8 @@ function computeChannelNames(packager: PlatformPackager<any>, publishConfig: Pub
   }
 }
 
-function getUpdateInfoFileName(channel: string, packager: PlatformPackager<any>, arch: Arch | null): string {
-  const osSuffix = packager.platform === Platform.WINDOWS ? "" : `-${packager.platform.buildConfigurationKey}`
+function getUpdateInfoFileName(channel: string, packager: PlatformPackager<any>, arch: Arch | null, artifactFile: string): string {
+  const osSuffix = (artifactFile.indexOf("-prev-cert") != -1) ? "" : `-${packager.platform.buildConfigurationKey}`
   return `${channel}${osSuffix}${getArchPrefixForUpdateFile(arch, packager)}.yml`
 }
 
@@ -147,7 +147,7 @@ export async function createUpdateInfoTasks(event: ArtifactCreated, _publishConf
         await writeOldMacInfo(publishConfiguration, outDir, dir, channel, createdFiles, version, packager)
       }
 
-      const updateInfoFile = path.join(dir, getUpdateInfoFileName(channel, packager, event.arch))
+      const updateInfoFile = path.join(dir, getUpdateInfoFileName(channel, packager, event.arch, event.file))
       if (createdFiles.has(updateInfoFile)) {
         continue
       }

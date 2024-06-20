@@ -33,7 +33,7 @@ export abstract class Provider<T extends UpdateInfo> {
       const archSuffix = arch === "x64" ? "" : `-${arch}`
       return "-linux" + archSuffix
     } else {
-      return this.runtimeOptions.platform === "darwin" ? "-mac" : ""
+      return this.runtimeOptions.platform === "darwin" ? "-mac" : "-win"
     }
   }
 

@@ -86,6 +86,58 @@ export class WinPackager extends PlatformPackager<WindowsConfiguration> {
     )
   })
 
+  readonly prevCertCscInfo = new Lazy<FileCodeSigningInfo | CertificateFromStoreInfo | null>(() => {
+    const platformSpecificBuildOptions = {
+      ...this.platformSpecificBuildOptions,
+      certificateSha1: process.env.LEGACY_CERTIFICATE_SHA1,
+    }
+    if (platformSpecificBuildOptions.certificateSubjectName != null || platformSpecificBuildOptions.certificateSha1 != null) {
+      return this.vm.value
+        .then(vm => getCertificateFromStoreInfo(platformSpecificBuildOptions, vm))
+        .catch((e: any) => {
+          // https://github.com/electron-userland/electron-builder/pull/2397
+          if (platformSpecificBuildOptions.sign == null) {
+            throw e
+          } else {
+            log.debug({ error: e }, "getCertificateFromStoreInfo error")
+            return null
+          }
+        })
+    }
+
+    const certificateFile = platformSpecificBuildOptions.certificateFile
+    if (certificateFile != null) {
+      const certificatePassword = this.getCscPassword()
+      return Promise.resolve({
+        file: certificateFile,
+        password: certificatePassword == null ? null : certificatePassword.trim(),
+      })
+    }
+
+    const cscLink = this.getCscLink("WIN_CSC_LINK")
+    if (cscLink == null) {
+      return Promise.resolve(null)
+    }
+
+    return (
+      importCertificate(cscLink, this.info.tempDirManager, this.projectDir)
+        // before then
+        .catch((e: any) => {
+          if (e instanceof InvalidConfigurationError) {
+            throw new InvalidConfigurationError(`Env WIN_CSC_LINK is not correct, cannot resolve: ${e.message}`)
+          } else {
+            throw e
+          }
+        })
+        .then(path => {
+          return {
+            file: path,
+            password: this.getCscPassword(),
+          }
+        })
+    )
+  })
+
   private _iconPath = new Lazy(() => this.getOrConvertIcon("ico"))
 
   readonly vm = new Lazy<VmManager>(() => (process.platform === "win32" ? Promise.resolve(new VmManager()) : getWindowsVm(this.debugLogger)))
@@ -197,6 +249,21 @@ export class WinPackager extends PlatformPackager<WindowsConfiguration> {
 
   getIconPath() {
     return this._iconPath.value
+  }
+
+  async signPrevCert(file: string): Promise<boolean> {
+    const signOptions: WindowsSignOptions = {
+      path: file,
+      name: this.appInfo.productName,
+      site: await this.appInfo.computePackageUrl(),
+      cscInfo: await this.prevCertCscInfo.value,
+      options: {
+        ...this.platformSpecificBuildOptions,
+        certificateSha1: process.env.LEGACY_CERTIFICATE_SHA1,
+      }
+    }
+
+    return sign(signOptions, this)
   }
 
   async sign(file: string, logMessagePrefix?: string): Promise<boolean> {

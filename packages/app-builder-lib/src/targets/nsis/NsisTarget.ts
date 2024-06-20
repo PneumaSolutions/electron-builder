@@ -1,7 +1,7 @@
 import BluebirdPromise from "bluebird-lst"
 import { Arch, asArray, AsyncTaskManager, exec, executeAppBuilder, getPlatformIconFileName, InvalidConfigurationError, log, spawnAndWrite, use, getPath7za } from "builder-util"
 import { CURRENT_APP_INSTALLER_FILE_NAME, CURRENT_APP_PACKAGE_FILE_NAME, PackageFileInfo, UUID } from "builder-util-runtime"
-import { exists, statOrNull, walk } from "builder-util/out/fs"
+import { copyFile, exists, statOrNull, walk } from "builder-util/out/fs"
 import _debug from "debug"
 import * as fs from "fs"
 import { readFile, stat, unlink } from "fs-extra"
@@ -344,6 +344,34 @@ export class NsisTarget extends Target {
       safeArtifactName,
       isWriteUpdateInfo: !this.isPortable,
     })
+
+    if (process.env.LEGACY_CERTIFICATE_SHA1) {
+      const prevCertInstallerPath = installerPath.replace("-setup.exe", "-prev-cert-setup.exe")
+      await copyFile(installerPath, prevCertInstallerPath)
+      await packager.signPrevCert(prevCertInstallerPath)
+
+      const safeArtifactName = computeSafeArtifactNameIfNeeded(installerFilename, () => this.generateGitHubInstallerName())
+      let updateInfo: any
+      if (this.isWebInstaller) {
+        updateInfo = createNsisWebDifferentialUpdateInfo(prevCertInstallerPath, packageFiles)
+      } else if (this.isBuildDifferentialAware) {
+        updateInfo = await createBlockmap(prevCertInstallerPath, this, packager, safeArtifactName)
+      }
+
+      if (updateInfo != null && isPerMachine && (oneClick || options.packElevateHelper)) {
+        updateInfo.isAdminRightsRequired = true
+      }
+
+      await packager.info.callArtifactBuildCompleted({
+        file: prevCertInstallerPath,
+        updateInfo,
+        target: this,
+        packager,
+        arch: primaryArch,
+        safeArtifactName,
+        isWriteUpdateInfo: !this.isPortable,
+      })
+    }
   }
 
   protected generateGitHubInstallerName(): string {
